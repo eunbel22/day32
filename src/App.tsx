@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import StatCards from './components/StatCards';
+import Weather from './components/Weather';
 import BookingForm from './components/BookingForm';
 import BookingTable from './components/BookingTable';
 import Login from './components/Login';
@@ -89,7 +90,12 @@ export default function App() {
           </div>
         </div>
 
-        {activeTab === 'dashboard' && <StatCards refreshKey={refreshKey} />}
+        {activeTab === 'dashboard' && (
+          <>
+            <Weather />
+            <StatCards refreshKey={refreshKey} />
+          </>
+        )}
 
         {activeTab === 'list' && <BookingTable key={refreshKey} />}
 

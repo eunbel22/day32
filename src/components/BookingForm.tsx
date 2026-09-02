@@ -18,6 +18,7 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [address, setAddress] = useState('');
+  const [addressError, setAddressError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -93,6 +94,7 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
 
   const handleAddressChange = async (value: string) => {
     setAddress(value);
+    setAddressError('');
 
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
@@ -119,9 +121,13 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
             map.current.setView([latNum, lonNum], 15);
             handleMapClick(latNum, lonNum);
           }
+          setAddressError(''); // 유효한 주소
+        } else {
+          setAddressError('유효하지 않은 주소입니다. 다시 확인해주세요.');
         }
       } catch (err) {
         console.error('Search error:', err);
+        setAddressError('주소 검색 중 오류가 발생했습니다.');
       }
     }, 800);
   };
@@ -221,10 +227,16 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
             type="text"
             value={address}
             onChange={(e) => handleAddressChange(e.target.value)}
-            className="w-full border border-gray-300 rounded p-2"
+            className={`w-full border rounded p-2 ${
+              addressError ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="주소 입력하거나 지도에서 클릭"
           />
-          <p className="text-xs text-gray-500 mt-1">지도를 클릭하거나 마커를 드래그</p>
+          {addressError ? (
+            <p className="text-xs text-red-600 mt-1">⚠️ {addressError}</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">지도를 클릭하거나 마커를 드래그</p>
+          )}
         </div>
 
         <div>
