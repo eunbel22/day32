@@ -1,17 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import StatCards from './components/StatCards';
 import BookingForm from './components/BookingForm';
 import BookingTable from './components/BookingTable';
+import Login from './components/Login';
 
 type TabType = 'dashboard' | 'list' | 'add' | 'status' | 'location';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data?.session?.user);
+      setLoading(false);
+    };
+
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleFormSuccess = () => {
     setRefreshKey((prev) => prev + 1);
     setActiveTab('list');
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
   };
 
   const tabs: { id: TabType; label: string }[] = [
@@ -22,10 +54,40 @@ export default function App() {
     { id: 'location', label: '위치확인' },
   ];
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">로딩 중...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
   return (
     <div className="min-h-screen bg-white pb-24">
       <div className="p-8">
-        <h1 className="text-3xl font-bold text-blue-600 mb-8">예약 관리 허브</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-blue-600">예약 관리 허브</h1>
+
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="font-semibold text-gray-800">{user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
+              <p className="text-sm text-gray-500">{user?.email}</p>
+            </div>
+            {user?.user_metadata?.avatar_url && (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="프로필"
+                className="w-10 h-10 rounded-full"
+              />
+            )}
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm ml-2"
+            >
+              로그아웃
+            </button>
+          </div>
+        </div>
 
         {activeTab === 'dashboard' && <StatCards refreshKey={refreshKey} />}
 
