@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { sendSlackMessage } from '../utils/slack';
 
 interface Booking {
   id: number;
@@ -49,17 +48,6 @@ export default function BookingTable() {
     if (error) {
       console.error('Error updating status:', error);
     } else {
-      // Slack 알림 전송
-      const booking = bookings.find((b) => b.id === id);
-      if (booking) {
-        await sendSlackMessage(`🔄 예약 상태가 변경되었습니다`, {
-          고객사: booking.customer,
-          서비스: booking.service,
-          이전상태: currentStatus === 'pending' ? '대기' : '확정',
-          새로운상태: newStatus === 'pending' ? '대기' : '확정',
-        });
-      }
-
       fetchBookings();
     }
   };

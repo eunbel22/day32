@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { sendSlackMessage } from '../utils/slack';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -149,15 +148,6 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       setError(`예약 추가 실패: ${insertError.message}`);
       setLoading(false);
     } else {
-      // Slack 알림 전송
-      await sendSlackMessage('✅ 새 예약이 추가되었습니다', {
-        고객사: customer,
-        서비스: service,
-        날짜: date,
-        시간: time,
-        주소: address || '(없음)',
-      });
-
       setCustomer('');
       setService('');
       setDate('');
