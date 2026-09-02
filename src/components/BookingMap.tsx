@@ -32,9 +32,13 @@ export default function BookingMap() {
   }, []);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || loading) return;
 
     try {
+      if (map.current) {
+        map.current.remove();
+      }
+
       map.current = L.map(mapContainer.current, { attributionControl: false }).setView(
         [37.5665, 126.978],
         10
@@ -54,7 +58,7 @@ export default function BookingMap() {
         map.current = null;
       }
     };
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
     if (!map.current) return;
@@ -104,7 +108,7 @@ export default function BookingMap() {
               `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
                 b.address
               )}&format=json&limit=1`,
-              { signal: AbortSignal.timeout(5000) }
+              { signal: AbortSignal.timeout(10000) }
             );
 
             if (!response.ok) return b;
@@ -118,7 +122,7 @@ export default function BookingMap() {
               };
             }
           } catch (err) {
-            console.error('Geocoding error:', err);
+            console.error('Geocoding error for address:', b.address, err);
           }
 
           return b;
@@ -130,10 +134,6 @@ export default function BookingMap() {
     setLoading(false);
   };
 
-  if (loading) {
-    return <div className="p-4 text-center text-gray-600">지도 로딩 중...</div>;
-  }
-
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="mb-4">
@@ -141,14 +141,42 @@ export default function BookingMap() {
           예약 위치 지도
         </h2>
         <p className="text-gray-600 text-sm">
-          지도의 마커를 클릭하면 예약 정보를 확인할 수 있습니다. ({bookings.filter(b => b.lat && b.lng).length}/{bookings.length}건 표시)
+          {loading
+            ? '주소를 지도 위치로 변환 중입니다...'
+            : `지도의 마커를 클릭하면 예약 정보를 확인할 수 있습니다. (${bookings.filter((b) => b.lat && b.lng).length}/${bookings.length}건 표시)`}
         </p>
       </div>
 
-      <div
-        ref={mapContainer}
-        className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-100 shadow-md"
-      />
+      {loading && (
+        <div className="w-full h-screen border-2 border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-md flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block">
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+            </div>
+            <p className="text-gray-600 font-medium">지도를 로드하는 중입니다...</p>
+            <p className="text-xs text-gray-500 mt-2">주소를 위도/경도로 변환하고 있습니다</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && (
+        <div
+          ref={mapContainer}
+          className="w-full h-screen border-2 border-gray-200 rounded-lg bg-gray-100 shadow-md"
+        />
+      )}
+
+      {!loading && bookings.length === 0 && (
+        <div className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-50 shadow-md flex items-center justify-center">
+          <p className="text-gray-600">예약이 없습니다</p>
+        </div>
+      )}
+
+      {!loading && bookings.length > 0 && bookings.filter((b) => b.lat && b.lng).length === 0 && (
+        <div className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-50 shadow-md flex items-center justify-center">
+          <p className="text-gray-600">주소 정보가 없어 지도에 표시할 예약이 없습니다</p>
+        </div>
+      )}
     </div>
   );
 }
