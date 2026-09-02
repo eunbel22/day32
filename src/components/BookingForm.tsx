@@ -7,6 +7,13 @@ interface BookingFormProps {
   onSuccess?: () => void;
 }
 
+interface WeatherData {
+  temp: number;
+  description: string;
+  humidity: number;
+  windSpeed: number;
+}
+
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -21,6 +28,8 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const [addressError, setAddressError] = useState('');
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -58,6 +67,44 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!lat || !lng) return;
+
+    const fetchWeather = async () => {
+      try {
+        setWeatherLoading(true);
+        const apiKey = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;
+
+        if (!apiKey) {
+          setWeatherLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=ko`,
+          { signal: AbortSignal.timeout(5000) }
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch weather');
+
+        const data = await response.json();
+        setWeather({
+          temp: Math.round(data.main.temp),
+          description: data.weather[0].main,
+          humidity: data.main.humidity,
+          windSpeed: Math.round(data.wind.speed * 10) / 10,
+        });
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+        setWeather(null);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, [lat, lng]);
 
   const handleMapClick = async (latitude: number, longitude: number) => {
     if (!map.current) return;
@@ -232,8 +279,8 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
+      <div className="mb-6">
+        <div className="mb-4">
           <label className="block text-sm font-bold text-blue-600 mb-2">주소</label>
           <input
             type="text"
@@ -262,8 +309,44 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
           <label className="block text-sm font-bold text-blue-600 mb-2">지도 (클릭 또는 검색)</label>
           <div
             ref={mapContainer}
-            className="w-full h-80 border-2 border-gray-200 rounded-lg bg-gray-100"
+            className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-100 shadow-md mb-4"
           />
+
+          {weather && (
+            <div className="p-4 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg text-white shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">
+                    {weather.description === 'Clear'
+                      ? '☀️'
+                      : weather.description === 'Clouds'
+                        ? '☁️'
+                        : weather.description === 'Rain'
+                          ? '🌧️'
+                          : weather.description === 'Thunderstorm'
+                            ? '⛈️'
+                            : weather.description === 'Snow'
+                              ? '❄️'
+                              : '🌤️'}
+                  </span>
+                  <div>
+                    <p className="text-2xl font-bold">{weather.temp}°C</p>
+                    <p className="text-sm text-orange-100">{weather.description}</p>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-sm">💧 {weather.humidity}%</p>
+                  <p className="text-sm">💨 {weather.windSpeed} m/s</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {weatherLoading && (
+            <div className="p-4 bg-gray-100 rounded-lg text-gray-600 text-sm">
+              날씨 정보 로딩 중...
+            </div>
+          )}
         </div>
       </div>
 
