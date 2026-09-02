@@ -59,20 +59,35 @@ export default function StatCards({ refreshKey }: { refreshKey?: number }) {
   };
 
   return (
-    <div className="flex gap-4 mb-8">
-      <div className="flex-1 bg-white rounded-lg shadow p-6">
-        <div className="text-3xl font-bold text-blue-600">{todayCount}</div>
-        <div className="text-sm text-gray-600 mt-2">오늘 예약</div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-5xl font-black">{todayCount}</div>
+            <div className="text-blue-100 mt-3 text-sm font-medium">오늘 예약</div>
+          </div>
+          <div className="text-6xl opacity-20">📅</div>
+        </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-lg shadow p-6">
-        <div className="text-3xl font-bold text-green-600">{confirmationRate}%</div>
-        <div className="text-sm text-gray-600 mt-2">확정률</div>
+      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-5xl font-black">{confirmationRate}%</div>
+            <div className="text-emerald-100 mt-3 text-sm font-medium">확정률</div>
+          </div>
+          <div className="text-6xl opacity-20">✓</div>
+        </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-lg shadow p-6">
-        <div className="text-3xl font-bold text-purple-600">{weekCount}</div>
-        <div className="text-sm text-gray-600 mt-2">이번 주 총 건수</div>
+      <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-5xl font-black">{weekCount}</div>
+            <div className="text-purple-100 mt-3 text-sm font-medium">이번 주 총 건수</div>
+          </div>
+          <div className="text-6xl opacity-20">📊</div>
+        </div>
       </div>
     </div>
   );

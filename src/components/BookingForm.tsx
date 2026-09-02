@@ -19,6 +19,8 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const [time, setTime] = useState('');
   const [address, setAddress] = useState('');
   const [addressError, setAddressError] = useState('');
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -57,14 +59,18 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
     };
   }, []);
 
-  const handleMapClick = async (lat: number, lng: number) => {
+  const handleMapClick = async (latitude: number, longitude: number) => {
     if (!map.current) return;
+
+    // 좌표 저장
+    setLat(latitude);
+    setLng(longitude);
 
     // 마커 업데이트
     if (marker.current) {
-      marker.current.setLatLng([lat, lng]);
+      marker.current.setLatLng([latitude, longitude]);
     } else {
-      marker.current = L.marker([lat, lng], { draggable: true })
+      marker.current = L.marker([latitude, longitude], { draggable: true })
         .addTo(map.current)
         .on('dragend', () => {
           if (marker.current) {
@@ -77,14 +83,14 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
     // 역지오코딩
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
         { signal: AbortSignal.timeout(5000) }
       );
 
       if (response.ok) {
         const data = await response.json();
         if (data?.address) {
-          setAddress(data.display_name || data.address.city || `${lat}, ${lng}`);
+          setAddress(data.display_name || data.address.city || `${latitude}, ${longitude}`);
         }
       }
     } catch (err) {
@@ -171,79 +177,92 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 p-4 bg-gray-50 rounded-lg">
-      <h2 className="text-xl font-bold mb-4">예약 추가</h2>
+    <form onSubmit={handleSubmit} className="mb-8 p-6 bg-white rounded-xl shadow-lg">
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+        예약 추가
+      </h2>
 
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">{error}</div>}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-lg font-medium">
+          ⚠️ {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium mb-1">고객사 *</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">고객사 *</label>
           <input
             type="text"
             value={customer}
             onChange={(e) => setCustomer(e.target.value)}
-            className="w-full border border-gray-300 rounded p-2"
+            className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
             placeholder="고객사명"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">서비스 *</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">서비스 *</label>
           <input
             type="text"
             value={service}
             onChange={(e) => setService(e.target.value)}
-            className="w-full border border-gray-300 rounded p-2"
+            className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
             placeholder="서비스명"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">날짜 *</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">날짜 *</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full border border-gray-300 rounded p-2"
+            className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">시간 *</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">시간 *</label>
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-full border border-gray-300 rounded p-2"
+            className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium mb-1">주소</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">주소</label>
           <input
             type="text"
             value={address}
             onChange={(e) => handleAddressChange(e.target.value)}
-            className={`w-full border rounded p-2 ${
-              addressError ? 'border-red-500' : 'border-gray-300'
+            className={`w-full border-2 rounded-lg p-3 focus:outline-none focus:ring-2 transition-all duration-200 ${
+              addressError
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
             }`}
             placeholder="주소 입력하거나 지도에서 클릭"
           />
           {addressError ? (
-            <p className="text-xs text-red-600 mt-1">⚠️ {addressError}</p>
+            <p className="text-xs text-red-600 mt-2 font-medium">⚠️ {addressError}</p>
           ) : (
-            <p className="text-xs text-gray-500 mt-1">지도를 클릭하거나 마커를 드래그</p>
+            <p className="text-xs text-gray-500 mt-2">지도를 클릭하거나 마커를 드래그</p>
+          )}
+          {lat && lng && (
+            <p className="text-xs text-blue-600 mt-2 font-semibold bg-blue-50 p-2 rounded">
+              📍 위도: {lat.toFixed(4)}, 경도: {lng.toFixed(4)}
+            </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">지도 (클릭 또는 검색)</label>
+          <label className="block text-sm font-bold text-blue-600 mb-2">지도 (클릭 또는 검색)</label>
           <div
             ref={mapContainer}
-            className="w-full h-24 border border-gray-300 rounded bg-gray-100"
+            className="w-full h-80 border-2 border-gray-200 rounded-lg bg-gray-100"
           />
         </div>
       </div>
@@ -251,9 +270,9 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200"
       >
-        {loading ? '추가 중...' : '예약하기'}
+        {loading ? '추가 중...' : '✓ 예약하기'}
       </button>
     </form>
   );

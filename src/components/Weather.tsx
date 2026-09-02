@@ -104,25 +104,26 @@ export default function Weather() {
   if (!weather) return null;
 
   return (
-    <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">서울 날씨</h3>
-          <div className="flex items-center gap-3">
-            <span className="text-4xl">{getWeatherEmoji(weather.description)}</span>
+    <div className="mb-8 p-6 bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-500 rounded-xl shadow-lg text-white overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-8 -mt-8"></div>
+      <div className="relative z-10">
+        <h3 className="text-xs font-semibold text-blue-100 uppercase tracking-widest mb-4">서울 현재 날씨</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-7xl">{getWeatherEmoji(weather.description)}</span>
             <div>
-              <p className="text-2xl font-bold text-blue-600">{weather.temp}°C</p>
-              <p className="text-sm text-gray-600">{weather.description}</p>
+              <p className="text-6xl font-black">{weather.temp}°C</p>
+              <p className="text-lg text-blue-100 mt-1 font-medium">{weather.description}</p>
             </div>
           </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600">
-            💧 습도: <span className="font-semibold">{weather.humidity}%</span>
-          </p>
-          <p className="text-sm text-gray-600 mt-1">
-            💨 바람: <span className="font-semibold">{weather.windSpeed} m/s</span>
-          </p>
+          <div className="text-right space-y-2">
+            <p className="text-lg">
+              💧 <span className="font-semibold">{weather.humidity}%</span>
+            </p>
+            <p className="text-lg">
+              💨 <span className="font-semibold">{weather.windSpeed} m/s</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

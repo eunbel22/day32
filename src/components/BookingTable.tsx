@@ -61,55 +61,66 @@ export default function BookingTable() {
   }
 
   return (
-    <div className="p-4">
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 p-2 text-left">고객사</th>
-            <th className="border border-gray-300 p-2 text-left">서비스</th>
-            <th className="border border-gray-300 p-2 text-left">날짜</th>
-            <th className="border border-gray-300 p-2 text-left">시간</th>
-            <th className="border border-gray-300 p-2 text-left">상태</th>
-            <th className="border border-gray-300 p-2 text-left">주소</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map((booking) => (
-            <tr key={booking.id} className="hover:bg-gray-50">
-              <td className="border border-gray-300 p-2">{booking.customer}</td>
-              <td className="border border-gray-300 p-2">{booking.service}</td>
-              <td className="border border-gray-300 p-2">{booking.date}</td>
-              <td className="border border-gray-300 p-2">{booking.time}</td>
-              <td className="border border-gray-300 p-2">
-                <button
-                  onClick={() => toggleStatus(booking.id, booking.status)}
-                  className={`px-3 py-1 rounded font-semibold cursor-pointer ${
-                    booking.status === 'pending'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}
-                >
-                  {booking.status === 'pending' ? '대기' : '확정'}
-                </button>
-              </td>
-              <td className="border border-gray-300 p-2">
-                {booking.address ? (
-                  <a
-                    href={`https://maps.google.com/?q=${encodeURIComponent(booking.address)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline hover:text-blue-800"
-                  >
-                    {booking.address}
-                  </a>
-                ) : (
-                  '-'
-                )}
-              </td>
+    <div className="p-6 bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <th className="px-6 py-4 text-left font-bold">고객사</th>
+              <th className="px-6 py-4 text-left font-bold">서비스</th>
+              <th className="px-6 py-4 text-left font-bold">날짜</th>
+              <th className="px-6 py-4 text-left font-bold">시간</th>
+              <th className="px-6 py-4 text-left font-bold">상태</th>
+              <th className="px-6 py-4 text-left font-bold">주소</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {bookings.map((booking) => (
+              <tr
+                key={booking.id}
+                className="hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
+              >
+                <td className="px-6 py-4 font-semibold text-gray-800">{booking.customer}</td>
+                <td className="px-6 py-4 text-gray-700">{booking.service}</td>
+                <td className="px-6 py-4 text-gray-700">
+                  <span className="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">
+                    {booking.date}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-gray-700">
+                  <span className="font-semibold">{booking.time}</span>
+                </td>
+                <td className="px-6 py-4">
+                  <button
+                    onClick={() => toggleStatus(booking.id, booking.status)}
+                    className={`px-4 py-2 rounded-lg font-bold text-sm cursor-pointer shadow-md hover:shadow-lg transition-all duration-200 ${
+                      booking.status === 'pending'
+                        ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-500'
+                        : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                    }`}
+                  >
+                    {booking.status === 'pending' ? '⏳ 대기' : '✓ 확정'}
+                  </button>
+                </td>
+                <td className="px-6 py-4">
+                  {booking.address ? (
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(booking.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors duration-200"
+                    >
+                      📍 {booking.address}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 italic">-</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

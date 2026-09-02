@@ -20,16 +20,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-blue-600 mb-2 text-center">예약 관리 허브</h1>
-        <p className="text-gray-600 text-center mb-8">Google로 로그인하여 시작하세요</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-purple-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* 배경 장식 */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
+
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full backdrop-blur-lg">
+        <div className="mb-8">
+          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 bg-clip-text text-transparent text-center mb-3">
+            예약 관리 허브
+          </h1>
+          <p className="text-gray-600 text-center font-medium">Google로 로그인하여 시작하세요</p>
+        </div>
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full bg-white border-2 border-gray-300 text-gray-800 font-semibold py-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
             <path
               fill="currentColor"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -50,9 +58,14 @@ export default function Login() {
           Google로 로그인
         </button>
 
-        <p className="text-xs text-gray-500 text-center mt-6">
-          Google 계정으로만 로그인할 수 있습니다.
-        </p>
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center font-medium">
+            보안된 Google 계정으로만 로그인할 수 있습니다
+          </p>
+          <p className="text-xs text-gray-400 text-center mt-2">
+            당신의 정보는 안전하게 보호됩니다
+          </p>
+        </div>
       </div>
     </div>
   );
