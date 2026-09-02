@@ -4,6 +4,7 @@ import StatCards from './components/StatCards';
 import Weather from './components/Weather';
 import BookingForm from './components/BookingForm';
 import BookingTable from './components/BookingTable';
+import BookingMap from './components/BookingMap';
 import Login from './components/Login';
 
 type TabType = 'dashboard' | 'list' | 'add' | 'status' | 'location';
@@ -116,15 +117,7 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'location' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              위치 확인
-            </h2>
-            <p className="text-gray-600 mb-6">주소를 클릭하면 Google Maps에서 위치를 확인할 수 있습니다.</p>
-            <BookingTable key={refreshKey} />
-          </div>
-        )}
+        {activeTab === 'location' && <BookingMap key={refreshKey} />}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t-2 border-blue-100 z-50">

@@ -29,6 +29,7 @@ export default function BookingTable() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
   const [editingData, setEditingData] = useState<EditingBooking | null>(null);
 
@@ -119,11 +120,43 @@ export default function BookingTable() {
     setEditingData(null);
   };
 
-  const filteredBookings = bookings.filter((booking) =>
-    booking.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    booking.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesSearch =
+      booking.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.address?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const exportToCSV = () => {
+    const headers = ['고객사', '서비스', '날짜', '시간', '상태', '주소'];
+    const rows = filteredBookings.map((b) => [
+      b.customer,
+      b.service,
+      b.date,
+      b.time,
+      b.status === 'pending' ? '대기' : '확정',
+      b.address || '',
+    ]);
+
+    const csv = [
+      headers.join(','),
+      ...rows.map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `예약목록_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) {
     return <div className="p-4 text-center text-gray-600">로딩 중...</div>;
@@ -131,7 +164,7 @@ export default function BookingTable() {
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="mb-4">
+      <div className="mb-4 space-y-3">
         <input
           type="text"
           value={searchTerm}
@@ -139,6 +172,46 @@ export default function BookingTable() {
           placeholder="고객사, 서비스, 주소로 검색..."
           className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
         />
+
+        <div className="flex gap-2 flex-wrap items-center">
+          <span className="text-sm font-semibold text-gray-600">상태:</span>
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === 'all'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            전체
+          </button>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === 'pending'
+                ? 'bg-yellow-400 text-yellow-900 shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            ⏳ 대기
+          </button>
+          <button
+            onClick={() => setStatusFilter('confirmed')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === 'confirmed'
+                ? 'bg-emerald-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            ✓ 확정
+          </button>
+          <button
+            onClick={exportToCSV}
+            className="ml-auto px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-all shadow-md"
+          >
+            📥 CSV 내보내기
+          </button>
+        </div>
       </div>
 
       {filteredBookings.length === 0 && bookings.length > 0 && (
