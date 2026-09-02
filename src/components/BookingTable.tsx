@@ -19,6 +19,7 @@ const supabase = createClient(
 export default function BookingTable() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchBookings();
@@ -52,16 +53,40 @@ export default function BookingTable() {
     }
   };
 
+  const filteredBookings = bookings.filter((booking) =>
+    booking.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    booking.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return <div className="p-4 text-center text-gray-600">로딩 중...</div>;
   }
 
-  if (bookings.length === 0) {
-    return <div className="p-4 text-center text-gray-600">예약이 없습니다</div>;
-  }
-
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="고객사, 서비스, 주소로 검색..."
+          className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+        />
+      </div>
+
+      {filteredBookings.length === 0 && bookings.length > 0 && (
+        <div className="p-4 text-center text-gray-600">검색 결과가 없습니다</div>
+      )}
+
+      {bookings.length === 0 && (
+        <div className="p-4 text-center text-gray-600">예약이 없습니다</div>
+      )}
+
+      {filteredBookings.length > 0 && (
+        <div className="text-xs text-gray-500 mb-3">검색 결과: {filteredBookings.length}건</div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -75,7 +100,7 @@ export default function BookingTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <tr
                 key={booking.id}
                 className="hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
