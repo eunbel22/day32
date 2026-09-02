@@ -11,6 +11,15 @@ interface Booking {
   status: string;
 }
 
+interface EditingBooking {
+  id: number;
+  customer: string;
+  service: string;
+  date: string;
+  time: string;
+  address: string | null;
+}
+
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -20,6 +29,8 @@ export default function BookingTable() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
+  const [editingData, setEditingData] = useState<EditingBooking | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -51,6 +62,61 @@ export default function BookingTable() {
     } else {
       fetchBookings();
     }
+  };
+
+  const deleteBooking = async (id: number) => {
+    if (!confirm('이 예약을 삭제하시겠습니까?')) return;
+
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting booking:', error);
+    } else {
+      fetchBookings();
+    }
+  };
+
+  const startEditing = (booking: Booking) => {
+    setEditingBooking(booking);
+    setEditingData({
+      id: booking.id,
+      customer: booking.customer,
+      service: booking.service,
+      date: booking.date,
+      time: booking.time,
+      address: booking.address,
+    });
+  };
+
+  const saveEditing = async () => {
+    if (!editingData) return;
+
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        customer: editingData.customer,
+        service: editingData.service,
+        date: editingData.date,
+        time: editingData.time,
+        address: editingData.address,
+      })
+      .eq('id', editingData.id);
+
+    if (error) {
+      console.error('Error updating booking:', error);
+    } else {
+      setEditingBooking(null);
+      setEditingData(null);
+      fetchBookings();
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingBooking(null);
+    setEditingData(null);
   };
 
   const filteredBookings = bookings.filter((booking) =>
@@ -97,6 +163,7 @@ export default function BookingTable() {
               <th className="px-6 py-4 text-left font-bold w-20">시간</th>
               <th className="px-6 py-4 text-left font-bold w-24">상태</th>
               <th className="px-6 py-4 text-left font-bold flex-1">주소</th>
+              <th className="px-6 py-4 text-center font-bold w-24">작업</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -145,11 +212,113 @@ export default function BookingTable() {
                     <span className="text-gray-400 italic">-</span>
                   )}
                 </td>
+                <td className="px-6 py-4 text-center text-sm">
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={() => startEditing(booking)}
+                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                    >
+                      ✏️ 수정
+                    </button>
+                    <button
+                      onClick={() => deleteBooking(booking.id)}
+                      className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      🗑️ 삭제
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {editingBooking && editingData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-blue-600 mb-4">예약 수정</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">고객사</label>
+                <input
+                  type="text"
+                  value={editingData.customer}
+                  onChange={(e) =>
+                    setEditingData({ ...editingData, customer: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">서비스</label>
+                <input
+                  type="text"
+                  value={editingData.service}
+                  onChange={(e) =>
+                    setEditingData({ ...editingData, service: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">날짜</label>
+                  <input
+                    type="date"
+                    value={editingData.date}
+                    onChange={(e) =>
+                      setEditingData({ ...editingData, date: e.target.value })
+                    }
+                    className="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">시간</label>
+                  <input
+                    type="time"
+                    value={editingData.time}
+                    onChange={(e) =>
+                      setEditingData({ ...editingData, time: e.target.value })
+                    }
+                    className="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">주소</label>
+                <input
+                  type="text"
+                  value={editingData.address || ''}
+                  onChange={(e) =>
+                    setEditingData({ ...editingData, address: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={saveEditing}
+                className="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                💾 저장
+              </button>
+              <button
+                onClick={cancelEditing}
+                className="flex-1 bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
