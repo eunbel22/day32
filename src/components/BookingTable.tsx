@@ -75,8 +75,10 @@ export default function BookingTable() {
 
     if (error) {
       console.error('Error deleting booking:', error);
+      alert(`삭제 실패: ${error.message}`);
     } else {
       fetchBookings();
+      alert('예약이 삭제되었습니다');
     }
   };
 
