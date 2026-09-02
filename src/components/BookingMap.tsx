@@ -33,57 +33,88 @@ export default function BookingMap() {
 
   useEffect(() => {
     const initMap = () => {
-      if (!mapContainer.current) return;
+      if (!mapContainer.current) {
+        console.warn('Map container not found');
+        return;
+      }
 
       try {
-        if (map.current) return;
+        // 기존 맵이 있으면 정리
+        if (map.current) {
+          try {
+            map.current.remove();
+          } catch (e) {
+            console.warn('Error removing old map:', e);
+          }
+          map.current = null;
+        }
 
-        map.current = L.map(mapContainer.current, { attributionControl: false }).setView(
-          [37.5665, 126.978],
-          10
-        );
+        // 새 맵 생성
+        map.current = L.map(mapContainer.current, {
+          attributionControl: false,
+          zoomControl: true
+        }).setView([37.5665, 126.978], 10);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap',
           maxZoom: 19,
         }).addTo(map.current);
+
+        console.log('Map initialized successfully');
       } catch (err) {
         console.error('Map initialization error:', err);
+        map.current = null;
       }
     };
 
     if (!loading) {
-      setTimeout(initMap, 100);
+      setTimeout(initMap, 150);
     }
+
+    return () => {
+      // cleanup 없음 - 다시 방문할 때 새로 초기화
+    };
   }, [loading]);
 
   useEffect(() => {
     if (!map.current) return;
 
-    markers.current.forEach((m) => m.remove());
-    markers.current = [];
+    try {
+      markers.current.forEach((m) => m.remove());
+      markers.current = [];
 
-    bookings.forEach((booking) => {
-      if (booking.lat && booking.lng && map.current) {
-        const marker = L.marker([booking.lat, booking.lng])
-          .addTo(map.current)
-          .bindPopup(
-            `<div class="p-2">
-              <p class="font-bold text-sm">${booking.customer}</p>
-              <p class="text-xs">${booking.service}</p>
-              <p class="text-xs text-gray-600">${booking.date} ${booking.time}</p>
-              <p class="text-xs mt-1 ${
-                booking.status === 'pending' ? 'text-yellow-600' : 'text-green-600'
-              }">${booking.status === 'pending' ? '⏳ 대기' : '✓ 확정'}</p>
-            </div>`
-          );
-        markers.current.push(marker);
+      bookings.forEach((booking) => {
+        if (booking.lat && booking.lng && map.current) {
+          try {
+            const marker = L.marker([booking.lat, booking.lng])
+              .addTo(map.current)
+              .bindPopup(
+                `<div class="p-2">
+                  <p class="font-bold text-sm">${booking.customer}</p>
+                  <p class="text-xs">${booking.service}</p>
+                  <p class="text-xs text-gray-600">${booking.date} ${booking.time}</p>
+                  <p class="text-xs mt-1 ${
+                    booking.status === 'pending' ? 'text-yellow-600' : 'text-green-600'
+                  }">${booking.status === 'pending' ? '⏳ 대기' : '✓ 확정'}</p>
+                </div>`
+              );
+            markers.current.push(marker);
+          } catch (err) {
+            console.error('Marker creation error:', err);
+          }
+        }
+      });
+
+      if (markers.current.length > 0) {
+        try {
+          const group = new L.featureGroup(markers.current);
+          map.current.fitBounds(group.getBounds().pad(0.1));
+        } catch (err) {
+          console.error('FitBounds error:', err);
+        }
       }
-    });
-
-    if (bookings.length > 0) {
-      const group = new L.featureGroup(markers.current);
-      map.current.fitBounds(group.getBounds().pad(0.1));
+    } catch (err) {
+      console.error('Marker update error:', err);
     }
   }, [bookings]);
 
