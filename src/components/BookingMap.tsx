@@ -148,7 +148,7 @@ export default function BookingMap() {
       </div>
 
       {loading && (
-        <div className="w-full h-screen border-2 border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-md flex items-center justify-center">
+        <div className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-md flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block">
               <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
@@ -157,13 +157,6 @@ export default function BookingMap() {
             <p className="text-xs text-gray-500 mt-2">주소를 위도/경도로 변환하고 있습니다</p>
           </div>
         </div>
-      )}
-
-      {!loading && (
-        <div
-          ref={mapContainer}
-          className="w-full h-screen border-2 border-gray-200 rounded-lg bg-gray-100 shadow-md"
-        />
       )}
 
       {!loading && bookings.length === 0 && (
@@ -176,6 +169,13 @@ export default function BookingMap() {
         <div className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-50 shadow-md flex items-center justify-center">
           <p className="text-gray-600">주소 정보가 없어 지도에 표시할 예약이 없습니다</p>
         </div>
+      )}
+
+      {!loading && (
+        <div
+          ref={mapContainer}
+          className="w-full h-96 border-2 border-gray-200 rounded-lg bg-gray-100 shadow-md"
+        />
       )}
     </div>
   );

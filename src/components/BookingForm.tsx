@@ -109,11 +109,9 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const handleMapClick = async (latitude: number, longitude: number) => {
     if (!map.current) return;
 
-    // 좌표 저장
     setLat(latitude);
     setLng(longitude);
 
-    // 마커 업데이트
     if (marker.current) {
       marker.current.setLatLng([latitude, longitude]);
     } else {
@@ -127,31 +125,21 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
         });
     }
 
-    // 역지오코딩
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-        { signal: AbortSignal.timeout(8000) }
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+        { signal: AbortSignal.timeout(5000) }
       );
 
-      if (!response.ok) {
-        setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        return;
-      }
-
-      const data = await response.json();
-      if (data?.address?.road || data?.address?.city || data?.display_name) {
-        const addressStr = data.display_name ||
-                          `${data.address.road || ''} ${data.address.city || ''}`.trim() ||
-                          `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-        setAddress(addressStr);
-        setAddressError('');
-      } else {
-        setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.display_name) {
+          setAddress(data.display_name);
+          setAddressError('');
+        }
       }
     } catch (err) {
       console.error('Reverse geocoding error:', err);
-      setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
     }
   };
 
