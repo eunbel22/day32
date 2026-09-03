@@ -86,15 +86,22 @@ export default function BookingMap() {
       markers.current = [];
 
       bookings.forEach((booking) => {
-        if (booking.lat && booking.lng && map.current) {
+        const lat = booking.lat ? parseFloat(String(booking.lat)) : NaN;
+        const lng = booking.lng ? parseFloat(String(booking.lng)) : NaN;
+
+        console.log('Checking booking:', booking.customer, 'lat:', lat, 'lng:', lng, 'map:', map.current ? 'yes' : 'no');
+
+        if (!isNaN(lat) && !isNaN(lng) && map.current) {
           try {
+            console.log('Creating marker for:', booking.customer, lat, lng);
+
             const customIcon = L.divIcon({
               html: `<div style="background-color: #ef4444; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>`,
               iconSize: [40, 40],
               className: 'custom-marker',
             });
 
-            const marker = L.marker([booking.lat, booking.lng], { icon: customIcon })
+            const marker = L.marker([lat as number, lng as number], { icon: customIcon })
               .addTo(map.current)
               .bindPopup(
                 `<div class="p-2">
