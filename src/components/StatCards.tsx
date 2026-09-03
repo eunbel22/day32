@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-interface Booking {
+interface BookingData {
   id: number;
   date: string;
   status: string;
+  time?: string;
+  customer?: string;
 }
 
 const supabase = createClient(
@@ -45,7 +47,7 @@ export default function StatCards({ refreshKey }: { refreshKey?: number }) {
       return;
     }
 
-    const bookings: any[] = data || [];
+    const bookings: BookingData[] = data || [];
 
     const today = new Date().toISOString().split('T')[0];
     const todayBookings = bookings.filter((b) => b.date === today);
@@ -84,7 +86,9 @@ export default function StatCards({ refreshKey }: { refreshKey?: number }) {
     // 고객사별 통계 (상위 1개)
     const customerCounts: Record<string, number> = {};
     bookings.forEach((b) => {
-      customerCounts[b.customer] = (customerCounts[b.customer] || 0) + 1;
+      if (b.customer) {
+        customerCounts[b.customer] = (customerCounts[b.customer] || 0) + 1;
+      }
     });
     const topCust = Object.entries(customerCounts).sort((a, b) => b[1] - a[1])[0];
     if (topCust) {

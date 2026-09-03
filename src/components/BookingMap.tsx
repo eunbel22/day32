@@ -107,7 +107,7 @@ export default function BookingMap() {
 
       if (markers.current.length > 0) {
         try {
-          const group = new L.featureGroup(markers.current);
+          const group = L.featureGroup(markers.current);
           map.current.fitBounds(group.getBounds().pad(0.1));
         } catch (err) {
           console.error('FitBounds error:', err);
