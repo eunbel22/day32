@@ -201,6 +201,8 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       date,
       time,
       address: address || null,
+      lat: lat || null,
+      lng: lng || null,
     });
 
     if (insertError) {
