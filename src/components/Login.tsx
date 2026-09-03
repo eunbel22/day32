@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
+
+const AUTHORIZED_EMAIL = 'portfolio22keb@gmail.com';
 
 export default function Login() {
   const handleGoogleLogin = async () => {
@@ -18,6 +21,36 @@ export default function Login() {
       console.error('Error logging in:', error);
     }
   };
+
+  // 앱 로드 시 이메일 검증
+  useEffect(() => {
+    const checkAuthorizedUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        const userEmail = data.session.user.email;
+        if (userEmail !== AUTHORIZED_EMAIL) {
+          await supabase.auth.signOut();
+          alert(`접근 권한이 없습니다.\n승인된 이메일: ${AUTHORIZED_EMAIL}`);
+        }
+      }
+    };
+
+    checkAuthorizedUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const userEmail = session.user.email;
+        if (userEmail !== AUTHORIZED_EMAIL) {
+          supabase.auth.signOut();
+          alert(`접근 권한이 없습니다.\n승인된 이메일: ${AUTHORIZED_EMAIL}`);
+        }
+      }
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-purple-100 flex items-center justify-center p-4 relative overflow-hidden">
