@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
+import { useGoogleCalendarAuth } from '../hooks/useGoogleCalendarAuth';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -33,6 +34,7 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const marker = useRef<L.Marker | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { createCalendarEvent } = useGoogleCalendar();
+  const { accessToken, requestCalendarAccess } = useGoogleCalendarAuth();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -198,15 +200,19 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
 
     setLoading(true);
 
-    // Google Calendar에 이벤트 생성 (로그인한 사용자의 provider_token 사용)
+    // Google Calendar에 이벤트 생성
     let calendarEventId = null;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.provider_token;
+      let token = accessToken;
 
-      if (accessToken) {
+      // accessToken이 없으면 요청하기
+      if (!token) {
+        token = await requestCalendarAccess();
+      }
+
+      if (token) {
         calendarEventId = await createCalendarEvent(
-          accessToken,
+          token,
           customer,
           service,
           date,

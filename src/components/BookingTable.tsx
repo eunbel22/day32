@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
+import { useGoogleCalendarAuth } from '../hooks/useGoogleCalendarAuth';
 
 interface Booking {
   id: number;
@@ -30,6 +31,7 @@ export default function BookingTable() {
   const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
   const [editingData, setEditingData] = useState<EditingBooking | null>(null);
   const { deleteCalendarEvent } = useGoogleCalendar();
+  const { accessToken, requestCalendarAccess } = useGoogleCalendarAuth();
 
   useEffect(() => {
     fetchBookings();
@@ -71,11 +73,15 @@ export default function BookingTable() {
     // Google Calendar에서 이벤트 삭제
     if (booking?.calendar_event_id) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const accessToken = session?.provider_token;
+        let token = accessToken;
 
-        if (accessToken) {
-          await deleteCalendarEvent(accessToken, booking.calendar_event_id);
+        // accessToken이 없으면 요청하기
+        if (!token) {
+          token = await requestCalendarAccess();
+        }
+
+        if (token) {
+          await deleteCalendarEvent(token, booking.calendar_event_id);
         }
       } catch (err) {
         console.warn('⚠️ Calendar deletion error:', err);
