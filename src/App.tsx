@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+
+const AUTHORIZED_EMAIL = 'portfolio22keb@gmail.com';
 import StatCards from './components/StatCards';
 import Weather from './components/Weather';
 import BookingForm from './components/BookingForm';
@@ -23,14 +25,29 @@ export default function App() {
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user);
+      const user = data?.session?.user;
+
+      if (user && user.email !== AUTHORIZED_EMAIL) {
+        await supabase.auth.signOut();
+        alert(`접근 권한이 없습니다.\n승인된 이메일: ${AUTHORIZED_EMAIL}`);
+        setUser(null);
+      } else {
+        setUser(user);
+      }
       setLoading(false);
     };
 
     checkUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user);
+      const user = session?.user;
+      if (user && user.email !== AUTHORIZED_EMAIL) {
+        supabase.auth.signOut();
+        alert(`접근 권한이 없습니다.\n승인된 이메일: ${AUTHORIZED_EMAIL}`);
+        setUser(null);
+      } else {
+        setUser(user);
+      }
     });
 
     return () => {
