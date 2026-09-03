@@ -135,39 +135,22 @@ export default function BookingMap() {
 
     if (error) {
       console.error('Error fetching bookings:', error);
-    } else {
-      const bookingsWithCoords = await Promise.all(
-        (data || []).map(async (b) => {
-          if (!b.address) return b;
-
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-                b.address
-              )}&format=json&limit=1`,
-              { signal: AbortSignal.timeout(10000) }
-            );
-
-            if (!response.ok) return b;
-
-            const result = await response.json();
-            if (result && result.length > 0) {
-              return {
-                ...b,
-                lat: parseFloat(result[0].lat),
-                lng: parseFloat(result[0].lon),
-              };
-            }
-          } catch (err) {
-            console.error('Geocoding error for address:', b.address, err);
-          }
-
-          return b;
-        })
-      );
-
-      setBookings(bookingsWithCoords);
+      setLoading(false);
+      return;
     }
+
+    console.log('Bookings loaded from DB:', data);
+
+    const bookingsWithCoords = (data || []).map((b) => {
+      if (b.lat && b.lng) {
+        console.log('Using saved coordinates:', b.customer, b.lat, b.lng);
+        return b;
+      }
+      return b;
+    });
+
+    console.log('Final bookings with coords:', bookingsWithCoords);
+    setBookings(bookingsWithCoords);
     setLoading(false);
   };
 
