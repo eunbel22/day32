@@ -9,6 +9,7 @@ interface Booking {
   time: string;
   address: string | null;
   status: string;
+  calendar_event_id?: string | null;
 }
 
 interface EditingBooking {
@@ -36,7 +37,7 @@ export default function BookingTable() {
     setLoading(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, customer, service, date, time, address, status');
+      .select('id, customer, service, date, time, address, status, calendar_event_id');
 
     if (error) {
       console.error('Error fetching bookings:', error);
@@ -62,6 +63,33 @@ export default function BookingTable() {
 
   const deleteBooking = async (id: number) => {
     if (!confirm('이 예약을 삭제하시겠습니까?')) return;
+
+    const booking = bookings.find((b) => b.id === id);
+
+    // Google Calendar에서 이벤트 삭제
+    if (booking?.calendar_event_id) {
+      try {
+        const deleteResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-calendar-event`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ eventId: booking.calendar_event_id }),
+          }
+        );
+
+        if (deleteResponse.ok) {
+          console.log('✓ Calendar event deleted');
+        } else {
+          console.warn('⚠️ Calendar event deletion failed');
+        }
+      } catch (err) {
+        console.warn('⚠️ Calendar deletion error:', err);
+      }
+    }
 
     const { error } = await supabase
       .from('bookings')

@@ -195,6 +195,40 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
     }
 
     setLoading(true);
+
+    // Google Calendar에 이벤트 생성
+    let calendarEventId = null;
+    try {
+      const calendarResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-calendar-event`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            customer,
+            service,
+            date,
+            time,
+            address: address || undefined,
+          }),
+        }
+      );
+
+      if (calendarResponse.ok) {
+        const calendarData = await calendarResponse.json() as { eventId: string };
+        calendarEventId = calendarData.eventId;
+        console.log('✓ Calendar event created:', calendarEventId);
+      } else {
+        const errorData = await calendarResponse.json() as { error: string };
+        console.warn('⚠️ Calendar event creation failed:', errorData.error);
+      }
+    } catch (err) {
+      console.warn('⚠️ Calendar integration error:', err);
+    }
+
     const { error: insertError } = await supabase.from('bookings').insert({
       customer,
       service,
@@ -203,6 +237,7 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       address: address || null,
       lat: lat || null,
       lng: lng || null,
+      calendar_event_id: calendarEventId || null,
     });
 
     if (insertError) {
