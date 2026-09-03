@@ -36,6 +36,13 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
     if (!mapContainer.current) return;
 
     try {
+      // Leaflet 마커 아이콘 설정
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+      });
+
       // 지도 초기화 (서울 중심)
       map.current = L.map(mapContainer.current, { attributionControl: false }).setView(
         [37.5665, 126.978],
