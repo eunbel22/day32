@@ -27,9 +27,13 @@ export default function BookingMap() {
   }, []);
 
   useEffect(() => {
+    console.log('[Map Init] loading state changed:', loading);
+
     const initMap = () => {
+      console.log('[initMap] Starting map initialization, mapContainer:', mapContainer.current ? 'found' : 'NOT FOUND');
+
       if (!mapContainer.current) {
-        console.warn('Map container not found');
+        console.warn('[initMap] Map container not found');
         return;
       }
 
@@ -62,15 +66,20 @@ export default function BookingMap() {
           maxZoom: 19,
         }).addTo(map.current);
 
-        console.log('Map initialized successfully');
+        console.log('[initMap] ✅ Map initialized successfully');
       } catch (err) {
-        console.error('Map initialization error:', err);
+        console.error('[initMap] ❌ Map initialization error:', err);
         map.current = null;
       }
     };
 
+    console.log('[Map Init] Checking loading:', loading, 'will call initMap:', !loading);
+
     if (!loading) {
+      console.log('[Map Init] Loading is false, calling initMap in 150ms');
       setTimeout(initMap, 150);
+    } else {
+      console.log('[Map Init] Loading is true, skipping map init');
     }
 
     return () => {
