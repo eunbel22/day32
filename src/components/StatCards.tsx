@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 interface BookingData {
   id: number;
@@ -8,11 +8,6 @@ interface BookingData {
   time?: string;
   customer?: string;
 }
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 interface TimeSlotStats {
   '09': number;

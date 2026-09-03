@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -13,11 +13,6 @@ interface WeatherData {
   humidity: number;
   windSpeed: number;
 }
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 export default function BookingForm({ onSuccess }: BookingFormProps) {
   const [customer, setCustomer] = useState('');

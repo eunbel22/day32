@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const AUTHORIZED_EMAIL = 'portfolio22keb@gmail.com';
+import { supabase } from './lib/supabase';
 import StatCards from './components/StatCards';
 import Weather from './components/Weather';
 import BookingForm from './components/BookingForm';
@@ -11,10 +9,7 @@ import Login from './components/Login';
 
 type TabType = 'dashboard' | 'list' | 'add' | 'status' | 'location';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const AUTHORIZED_EMAIL = 'portfolio22keb@gmail.com';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');

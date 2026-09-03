@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -14,11 +14,6 @@ interface Booking {
   lat?: number;
   lng?: number;
 }
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 export default function BookingMap() {
   const [bookings, setBookings] = useState<Booking[]>([]);
