@@ -79,9 +79,15 @@ export default function BookingMap() {
   }, [loading]);
 
   useEffect(() => {
-    if (!map.current) return;
+    console.log('Marker useEffect triggered. bookings:', bookings.length, 'map.current:', map.current ? 'exists' : 'NULL');
+
+    if (!map.current) {
+      console.warn('Map not initialized yet!');
+      return;
+    }
 
     try {
+      console.log('Starting marker update with', bookings.length, 'bookings');
       markers.current.forEach((m) => m.remove());
       markers.current = [];
 
