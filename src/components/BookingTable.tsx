@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { useGoogleCalendarAuth } from '../hooks/useGoogleCalendarAuth';
 
 interface Booking {
   id: number;
@@ -11,7 +9,6 @@ interface Booking {
   time: string;
   address: string | null;
   status: string;
-  calendar_event_id?: string | null;
 }
 
 interface EditingBooking {
@@ -30,8 +27,6 @@ export default function BookingTable() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
   const [editingData, setEditingData] = useState<EditingBooking | null>(null);
-  const { deleteCalendarEvent } = useGoogleCalendar();
-  const { accessToken, requestCalendarAccess } = useGoogleCalendarAuth();
 
   useEffect(() => {
     fetchBookings();
@@ -41,7 +36,7 @@ export default function BookingTable() {
     setLoading(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, customer, service, date, time, address, status, calendar_event_id');
+      .select('id, customer, service, date, time, address, status');
 
     if (error) {
       console.error('Error fetching bookings:', error);
@@ -67,26 +62,6 @@ export default function BookingTable() {
 
   const deleteBooking = async (id: number) => {
     if (!confirm('이 예약을 삭제하시겠습니까?')) return;
-
-    const booking = bookings.find((b) => b.id === id);
-
-    // Google Calendar에서 이벤트 삭제
-    if (booking?.calendar_event_id) {
-      try {
-        let token = accessToken;
-
-        // accessToken이 없으면 요청하기
-        if (!token) {
-          token = await requestCalendarAccess();
-        }
-
-        if (token) {
-          await deleteCalendarEvent(token, booking.calendar_event_id);
-        }
-      } catch (err) {
-        console.warn('⚠️ Calendar deletion error:', err);
-      }
-    }
 
     const { error } = await supabase
       .from('bookings')
