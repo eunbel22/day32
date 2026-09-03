@@ -88,7 +88,13 @@ export default function BookingMap() {
       bookings.forEach((booking) => {
         if (booking.lat && booking.lng && map.current) {
           try {
-            const marker = L.marker([booking.lat, booking.lng])
+            const customIcon = L.divIcon({
+              html: `<div style="background-color: #ef4444; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>`,
+              iconSize: [40, 40],
+              className: 'custom-marker',
+            });
+
+            const marker = L.marker([booking.lat, booking.lng], { icon: customIcon })
               .addTo(map.current)
               .bindPopup(
                 `<div class="p-2">
@@ -101,6 +107,7 @@ export default function BookingMap() {
                 </div>`
               );
             markers.current.push(marker);
+            console.log('Marker added:', booking.customer, booking.lat, booking.lng);
           } catch (err) {
             console.error('Marker creation error:', err);
           }
