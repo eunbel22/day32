@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -31,6 +32,7 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const map = useRef<L.Map | null>(null);
   const marker = useRef<L.Marker | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { createCalendarEvent } = useGoogleCalendar();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -196,34 +198,21 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
 
     setLoading(true);
 
-    // Google Calendar에 이벤트 생성
+    // Google Calendar에 이벤트 생성 (로그인한 사용자의 provider_token 사용)
     let calendarEventId = null;
     try {
-      const calendarResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-calendar-event`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            customer,
-            service,
-            date,
-            time,
-            address: address || undefined,
-          }),
-        }
-      );
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.provider_token;
 
-      if (calendarResponse.ok) {
-        const calendarData = await calendarResponse.json() as { eventId: string };
-        calendarEventId = calendarData.eventId;
-        console.log('✓ Calendar event created:', calendarEventId);
-      } else {
-        const errorData = await calendarResponse.json() as { error: string };
-        console.warn('⚠️ Calendar event creation failed:', errorData.error);
+      if (accessToken) {
+        calendarEventId = await createCalendarEvent(
+          accessToken,
+          customer,
+          service,
+          date,
+          time,
+          address
+        );
       }
     } catch (err) {
       console.warn('⚠️ Calendar integration error:', err);

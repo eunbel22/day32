@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 
 interface Booking {
   id: number;
@@ -28,6 +29,7 @@ export default function BookingTable() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
   const [editingData, setEditingData] = useState<EditingBooking | null>(null);
+  const { deleteCalendarEvent } = useGoogleCalendar();
 
   useEffect(() => {
     fetchBookings();
@@ -69,22 +71,11 @@ export default function BookingTable() {
     // Google Calendar에서 이벤트 삭제
     if (booking?.calendar_event_id) {
       try {
-        const deleteResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-calendar-event`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({ eventId: booking.calendar_event_id }),
-          }
-        );
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.provider_token;
 
-        if (deleteResponse.ok) {
-          console.log('✓ Calendar event deleted');
-        } else {
-          console.warn('⚠️ Calendar event deletion failed');
+        if (accessToken) {
+          await deleteCalendarEvent(accessToken, booking.calendar_event_id);
         }
       } catch (err) {
         console.warn('⚠️ Calendar deletion error:', err);

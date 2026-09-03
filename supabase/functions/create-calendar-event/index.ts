@@ -44,7 +44,18 @@ serve(async (req) => {
     });
 
     const tokenData = await tokenResponse.json() as { access_token: string };
+    
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error("Token refresh failed:", tokenData);
+      throw new Error(
+        `Token refresh failed: ${tokenData.error || "unknown"} - ${tokenData.error_description || ""}`
+      );
+    }
+
+    
     const accessToken = tokenData.access_token;
+
+    
 
     // 날짜와 시간 결합
     const dateTime = new Date(`${date}T${time}:00`);
