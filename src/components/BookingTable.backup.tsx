@@ -32,7 +32,6 @@ export default function BookingTable() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [editingBooking, setEditingBooking] = useState<EditingBooking | null>(null);
   const [editingData, setEditingData] = useState<EditingBooking | null>(null);
-  const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchBookings();
@@ -54,11 +53,9 @@ export default function BookingTable() {
 
   const toggleStatus = async (id: number, currentStatus: string) => {
     const newStatus = currentStatus === 'pending' ? 'confirmed' : 'pending';
-    const newDecision = newStatus === 'pending' ? 'pending' : 'confirmed_human';
-
     const { error } = await supabase
       .from('bookings')
-      .update({ status: newStatus, decision: newDecision })
+      .update({ status: newStatus })
       .eq('id', id);
 
     if (error) {
@@ -123,39 +120,6 @@ export default function BookingTable() {
   const cancelEditing = () => {
     setEditingBooking(null);
     setEditingData(null);
-  };
-
-  const toggleCheckbox = (id: number) => {
-    const newChecked = new Set(checkedIds);
-    if (newChecked.has(id)) {
-      newChecked.delete(id);
-    } else {
-      newChecked.add(id);
-    }
-    setCheckedIds(newChecked);
-  };
-
-  const toggleCheckAll = () => {
-    if (checkedIds.size === filteredBookings.length) {
-      setCheckedIds(new Set());
-    } else {
-      setCheckedIds(new Set(filteredBookings.map((b) => b.id)));
-    }
-  };
-
-  const deleteChecked = async () => {
-    if (checkedIds.size === 0) return;
-
-    const message = `선택된 ${checkedIds.size}건을 삭제하시겠습니까?`;
-    if (!confirm(message)) return;
-
-    for (const id of checkedIds) {
-      await supabase.from('bookings').delete().eq('id', id);
-    }
-
-    setCheckedIds(new Set());
-    fetchBookings();
-    alert(`${checkedIds.size}건이 삭제되었습니다`);
   };
 
   const filteredBookings = bookings.filter((booking) => {
@@ -243,16 +207,6 @@ export default function BookingTable() {
           >
             ✓ 확정
           </button>
-
-          {checkedIds.size > 0 && (
-            <button
-              onClick={deleteChecked}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition-all shadow-md animate-pulse"
-            >
-              🗑️ {checkedIds.size}건 삭제
-            </button>
-          )}
-
           <button
             onClick={exportToCSV}
             className="ml-auto px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-all shadow-md"
@@ -278,14 +232,6 @@ export default function BookingTable() {
         <table className="w-full">
           <thead>
             <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-              <th className="px-4 py-4 text-center font-bold w-12">
-                <input
-                  type="checkbox"
-                  checked={checkedIds.size > 0 && checkedIds.size === filteredBookings.length}
-                  onChange={toggleCheckAll}
-                  className="w-5 h-5 rounded border-2 border-white text-blue-600 cursor-pointer"
-                />
-              </th>
               <th className="px-6 py-4 text-left font-bold w-24">고객사</th>
               <th className="px-6 py-4 text-left font-bold w-16">종류</th>
               <th className="px-6 py-4 text-left font-bold w-16">형태</th>
@@ -300,20 +246,8 @@ export default function BookingTable() {
             {filteredBookings.map((booking) => (
               <tr
                 key={booking.id}
-                className={`transition-colors duration-200 ${
-                  checkedIds.has(booking.id)
-                    ? 'bg-blue-100 hover:bg-blue-150'
-                    : 'hover:bg-blue-50'
-                }`}
+                className="hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
               >
-                <td className="px-4 py-4 text-center">
-                  <input
-                    type="checkbox"
-                    checked={checkedIds.has(booking.id)}
-                    onChange={() => toggleCheckbox(booking.id)}
-                    className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 cursor-pointer"
-                  />
-                </td>
                 <td className="px-6 py-4 font-semibold text-gray-800 text-sm whitespace-nowrap truncate">{booking.customer}</td>
                 <td className="px-6 py-4 text-gray-700 text-sm">
                   <span className="text-xs font-medium">{booking.kind || '-'}</span>

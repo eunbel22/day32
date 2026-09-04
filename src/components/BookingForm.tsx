@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { judge } from '../lib/judge';
+import { decide } from '../lib/decide';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -64,6 +65,19 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
     // slots_wanted 저장 형식
     const slotsWantedStr = slotOrder.map((i) => SLOT_NAMES[i]).join(',');
 
+    // 기존 예약들 조회해서 판정
+    const { data: allBookings } = await supabase.from('bookings').select('*');
+    const decideResult = decide(
+      {
+        customer,
+        kind,
+        date,
+        slots_wanted: slotsWantedStr,
+      },
+      allBookings || [],
+      false
+    );
+
     const { error: insertError } = await supabase.from('bookings').insert({
       customer,
       kind,
@@ -73,7 +87,12 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
       date,
       slots_wanted: slotsWantedStr,
       service: memo,
-      decision: 'pending',
+      decision: decideResult.decision,
+      reason: decideResult.reason,
+      options: decideResult.options || null,
+      candidate: decideResult.candidate || null,
+      slot_assigned: decideResult.slotAssigned || null,
+      trace: decideResult.trace.join('\n'),
       status: 'pending',
       time: '', // time 칸은 빈 문자열 저장
     });

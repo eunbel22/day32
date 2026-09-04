@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
-import StatCards from './components/StatCards';
-import Weather from './components/Weather';
+import DashboardTab from './components/DashboardTab';
 import BookingForm from './components/BookingForm';
 import BookingTable from './components/BookingTable';
 import BookingMap from './components/BookingMap';
+import UnconfirmedManagement from './components/UnconfirmedManagement';
 import Login from './components/Login';
 
 type TabType = 'dashboard' | 'list' | 'add' | 'status' | 'location';
@@ -64,7 +64,7 @@ export default function App() {
     { id: 'dashboard', label: '대시보드' },
     { id: 'list', label: '예약목록' },
     { id: 'add', label: '예약추가' },
-    { id: 'status', label: '상태관리' },
+    { id: 'status', label: '미확정 관리' },
     { id: 'location', label: '위치확인' },
   ];
 
@@ -108,26 +108,13 @@ export default function App() {
           </div>
         </div>
 
-        {activeTab === 'dashboard' && (
-          <>
-            <Weather />
-            <StatCards refreshKey={refreshKey} />
-          </>
-        )}
+        {activeTab === 'dashboard' && <DashboardTab key={refreshKey} />}
 
         {activeTab === 'list' && <BookingTable key={refreshKey} />}
 
         {activeTab === 'add' && <BookingForm onSuccess={handleFormSuccess} />}
 
-        {activeTab === 'status' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              상태 관리
-            </h2>
-            <p className="text-gray-600 mb-6">예약의 상태를 pending(대기)에서 confirmed(확정)으로 변경합니다.</p>
-            <BookingTable key={refreshKey} />
-          </div>
-        )}
+        {activeTab === 'status' && <UnconfirmedManagement key={refreshKey} />}
 
         {activeTab === 'location' && <BookingMap key={refreshKey} />}
       </div>
