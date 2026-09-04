@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { judge } from '../lib/judge';
 import { decide } from '../lib/decide';
+import { getDistanceByAddress } from '../lib/osrm';
 
 interface BookingFormProps {
   onSuccess?: () => void;
+  companyLocation?: string;
 }
 
 const SLOT_NAMES = ['오전 10-12', '오후-1 13-15', '오후-2 15-17'];
 
-export default function BookingForm({ onSuccess }: BookingFormProps) {
+export default function BookingForm({ onSuccess, companyLocation }: BookingFormProps) {
   const [customer, setCustomer] = useState('');
   const [kind, setKind] = useState('');
   const [form, setForm] = useState('');
@@ -20,6 +22,23 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
   const [slotOrder, setSlotOrder] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [distanceInfo, setDistanceInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
+  const [calculatingDistance, setCalculatingDistance] = useState(false);
+
+  useEffect(() => {
+    if (form === '외근' && companyLocation && address) {
+      setCalculatingDistance(true);
+      getDistanceByAddress(companyLocation, address)
+        .then((result) => {
+          setDistanceInfo(result);
+        })
+        .finally(() => {
+          setCalculatingDistance(false);
+        });
+    } else {
+      setDistanceInfo(null);
+    }
+  }, [form, companyLocation, address]);
 
   const handleSlotChange = (index: number) => {
     const newSlots = [...slotsWanted];
@@ -201,6 +220,26 @@ export default function BookingForm({ onSuccess }: BookingFormProps) {
             className="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="방문 위치"
           />
+          {companyLocation && address && (
+            <div className="mt-2 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+              <div className="text-xs text-gray-600 mb-2">📍 거리 정보</div>
+              {calculatingDistance ? (
+                <div className="text-sm text-gray-600">🔄 거리 계산 중...</div>
+              ) : distanceInfo ? (
+                <>
+                  <div className="text-sm font-semibold text-blue-700 mb-1">
+                    {companyLocation} → {address}
+                  </div>
+                  <div className="flex gap-4 text-xs text-gray-700">
+                    <span>🚗 <strong>{distanceInfo.distanceKm} km</strong></span>
+                    <span>⏱️ <strong>약 {distanceInfo.durationMin}분</strong></span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-xs text-red-600">⚠️ 위치를 찾을 수 없습니다</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

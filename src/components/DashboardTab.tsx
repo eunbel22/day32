@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { decide } from '../lib/decide';
+import Weather from './Weather';
 import WorkflowGraph from './WorkflowGraph';
 import JudgmentLog from './JudgmentLog';
 import StatusBoard from './StatusBoard';
@@ -102,6 +103,9 @@ export default function DashboardTab() {
 
   return (
     <div className="space-y-6">
+      {/* 날씨 */}
+      <Weather />
+
       {/* 제어 패널 */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl p-6 text-white">
         <div className="flex items-center justify-between gap-4">

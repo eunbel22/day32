@@ -16,6 +16,11 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [companyLocation, setCompanyLocation] = useState(() => {
+    const saved = localStorage.getItem('company-location');
+    return saved || '';
+  });
+  const [showLocationInput, setShowLocationInput] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -60,6 +65,11 @@ export default function App() {
     setUser(null);
   };
 
+  const handleLocationSave = () => {
+    localStorage.setItem('company-location', companyLocation);
+    setShowLocationInput(false);
+  };
+
   const tabs: { id: TabType; label: string }[] = [
     { id: 'dashboard', label: '대시보드' },
     { id: 'list', label: '예약목록' },
@@ -87,24 +97,58 @@ export default function App() {
             <p className="text-gray-600 text-sm">전문적인 예약 관리 시스템</p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-semibold text-gray-800">{user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+          <div className="flex items-center gap-6">
+            {/* 회사 위치 */}
+            <div className="bg-white rounded-lg px-4 py-2 shadow-md border border-gray-200">
+              {showLocationInput ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={companyLocation}
+                    onChange={(e) => setCompanyLocation(e.target.value)}
+                    placeholder="회사 위치 입력 (예: 강남역)"
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleLocationSave}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                  >
+                    저장
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => setShowLocationInput(true)}
+                >
+                  <span className="text-lg">📍</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {companyLocation || '회사 위치 설정'}
+                  </span>
+                </div>
+              )}
             </div>
-            {user?.user_metadata?.avatar_url && (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt="프로필"
-                className="w-10 h-10 rounded-full border-2 border-blue-300 shadow-md"
-              />
-            )}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-md text-sm ml-2 font-medium transition-all duration-200 hover:shadow-lg"
-            >
-              로그아웃
-            </button>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="font-semibold text-gray-800">{user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
+                <p className="text-sm text-gray-500">{user?.email}</p>
+              </div>
+              {user?.user_metadata?.avatar_url && (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="프로필"
+                  className="w-10 h-10 rounded-full border-2 border-blue-300 shadow-md"
+                />
+              )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-md text-sm ml-2 font-medium transition-all duration-200 hover:shadow-lg"
+              >
+                로그아웃
+              </button>
+            </div>
           </div>
         </div>
 
@@ -112,7 +156,7 @@ export default function App() {
 
         {activeTab === 'list' && <BookingTable key={refreshKey} />}
 
-        {activeTab === 'add' && <BookingForm onSuccess={handleFormSuccess} />}
+        {activeTab === 'add' && <BookingForm onSuccess={handleFormSuccess} companyLocation={companyLocation} />}
 
         {activeTab === 'status' && <UnconfirmedManagement key={refreshKey} />}
 
