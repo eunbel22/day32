@@ -9,6 +9,11 @@ interface Booking {
   time: string;
   address: string | null;
   status: string;
+  kind?: string;
+  form?: string;
+  memo?: string;
+  slots_wanted?: string;
+  decision?: string;
 }
 
 interface EditingBooking {
@@ -36,7 +41,7 @@ export default function BookingTable() {
     setLoading(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, customer, service, date, time, address, status');
+      .select('id, customer, service, date, time, address, status, kind, form, memo, slots_wanted, decision');
 
     if (error) {
       console.error('Error fetching bookings:', error);
@@ -227,12 +232,13 @@ export default function BookingTable() {
         <table className="w-full">
           <thead>
             <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-              <th className="px-6 py-4 text-left font-bold w-32">고객사</th>
-              <th className="px-6 py-4 text-left font-bold w-24">서비스</th>
-              <th className="px-6 py-4 text-left font-bold w-28">날짜</th>
-              <th className="px-6 py-4 text-left font-bold w-20">시간</th>
-              <th className="px-6 py-4 text-left font-bold w-24">상태</th>
-              <th className="px-6 py-4 text-left font-bold flex-1">주소</th>
+              <th className="px-6 py-4 text-left font-bold w-24">고객사</th>
+              <th className="px-6 py-4 text-left font-bold w-16">종류</th>
+              <th className="px-6 py-4 text-left font-bold w-16">형태</th>
+              <th className="px-6 py-4 text-left font-bold w-32">메모</th>
+              <th className="px-6 py-4 text-left font-bold w-20">날짜</th>
+              <th className="px-6 py-4 text-left font-bold w-24">슬롯</th>
+              <th className="px-6 py-4 text-left font-bold w-16">상태</th>
               <th className="px-6 py-4 text-center font-bold w-24">작업</th>
             </tr>
           </thead>
@@ -244,9 +250,17 @@ export default function BookingTable() {
               >
                 <td className="px-6 py-4 font-semibold text-gray-800 text-sm whitespace-nowrap truncate">{booking.customer}</td>
                 <td className="px-6 py-4 text-gray-700 text-sm">
-                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-semibold whitespace-nowrap text-xs">
-                    {booking.service}
+                  <span className="text-xs font-medium">{booking.kind || '-'}</span>
+                </td>
+                <td className="px-6 py-4 text-gray-700 text-sm">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    booking.form === '외근' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {booking.form || '-'}
                   </span>
+                </td>
+                <td className="px-6 py-4 text-gray-700 text-sm truncate">
+                  <span className="text-xs">{booking.memo || '-'}</span>
                 </td>
                 <td className="px-6 py-4 text-gray-700 text-sm">
                   <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
@@ -254,7 +268,7 @@ export default function BookingTable() {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-gray-700 text-sm">
-                  <span className="font-semibold">{booking.time}</span>
+                  <span className="text-xs font-medium">{booking.slots_wanted || '-'}</span>
                 </td>
                 <td className="px-6 py-4">
                   <button
@@ -267,20 +281,6 @@ export default function BookingTable() {
                   >
                     {booking.status === 'pending' ? '⏳ 대기' : '✓ 확정'}
                   </button>
-                </td>
-                <td className="px-6 py-4 text-sm">
-                  {booking.address ? (
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(booking.address)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors duration-200 truncate block"
-                    >
-                      📍 {booking.address}
-                    </a>
-                  ) : (
-                    <span className="text-gray-400 italic">-</span>
-                  )}
                 </td>
                 <td className="px-6 py-4 text-center text-sm">
                   <div className="flex gap-2 justify-center">
